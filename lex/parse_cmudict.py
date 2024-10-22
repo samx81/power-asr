@@ -9,6 +9,7 @@ import json
 import string
 
 dictversion = 'cmudict.rep'
+dictversion = 'cmudict.0.7a'  # Also works but lose syllable aligning
 with open(dictversion, 'r') as f:
     lex = {}
     for line in f:
