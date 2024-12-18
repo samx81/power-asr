@@ -266,7 +266,7 @@ class Levenshtein:
             ref = [x.lower() for x in ref]
             hyp = [x.lower() for x in hyp]
 
-        #pp = pprint.PrettyPrinter(width=300)
+        # pp = pprint.PrettyPrinter(width=300)
         lev.backMatrix = BackTrackMatrix(len(ref), len(hyp), weights)
 
         # Starts with 1st word in hyp
@@ -386,12 +386,16 @@ class Levenshtein:
 
         G = nx.Graph()
 
+        seen = set()
         while chart:
             (i, j) = chart.pop()
+            if (i, j) in seen:
+                continue
+            seen.add((i, j))
+            # print(f"{i:>3}, {j:>3}, {asizeof.asizeof(G)}", end='\r')
 
             for alignLabel in self.backMatrix.matrix[i][j].backTrackOptions:
-                child = self.backMatrix.matrix[i][j].getBackTrackOffset(
-                    alignLabel)
+                child = self.backMatrix.matrix[i][j].getBackTrackOffset(alignLabel)
                 prev_i = i + child[1][0]
                 prev_j = j + child[1][1]
 
@@ -404,8 +408,7 @@ class Levenshtein:
                 if (i == prev_i and i in (minPos[0], maxPos[0])) or (j == prev_j and j in (minPos[1], maxPos[1])):
                     weight = 0
 
-                G.add_edge((i, j), (prev_i, prev_j), weight=weight,
-                           labels=(rlabel, hlabel, align))
+                G.add_edge((i, j), (prev_i, prev_j), weight=weight, labels=(rlabel, hlabel, align))
                 chart.appendleft((prev_i, prev_j))
         return G
 
