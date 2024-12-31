@@ -45,7 +45,7 @@ class PronouncerLex(PronouncerBase):
         '''Alternative ways to pronounce the word. Adds simple digit to word conversion'''
         prons = []
         # Split words along hyphens
-        wordsSplit = splitHyphens(' '.join(word))
+        wordsSplit = splitHyphens(word)
         # Instead of one word, we may have many
         for myword in wordsSplit:
             if myword.isdigit():

@@ -159,7 +159,7 @@ class PowerAligner:
         
     def align(self):
         # Find the error regions that may need to be realigned
-        self.split_regions, self.error_indexes = self.wer_alignment.split_error_regions()
+        self.split_regions, self.error_indexes = self.wer_alignment.split_error_regions(error_pattern="[SDI]+")
         self.phonetic_alignments = [None] * len(self.split_regions)
 
         for error_index in self.error_indexes:
@@ -169,11 +169,23 @@ class PowerAligner:
             ref_phones = self.pronouncer.pronounce(ref_words)
             hyp_phones = self.pronouncer.pronounce(hyp_words)
 
-            power_seg_alignment, self.phonetic_alignments[error_index] = PowerAligner.phoneAlignToWordAlign(ref_words, hyp_words, 
-                ref_phones, hyp_phones)
 
-            # Replace the error region at the current index.
-            self.split_regions[error_index] = power_seg_alignment
+            if len(ref_words) == len(hyp_words) == 1:
+                lev = Levenshtein.align(
+                    ref=ref_phones, hyp=hyp_phones,
+                    reserve_list=PowerAligner.reserve_list, 
+                    exclusive_sets=PowerAligner.exclusive_sets,
+                    weights=Levenshtein.wordAlignWeights
+                )
+                self.phonetic_alignments[error_index] = lev.expandAlignCompact()
+            else:
+                power_seg_alignment, self.phonetic_alignments[error_index] = PowerAligner.phoneAlignToWordAlign(
+                    ref_words, hyp_words, 
+                    ref_phones, hyp_phones
+                )
+
+                # Replace the error region at the current index.
+                self.split_regions[error_index] = power_seg_alignment
 
         # Merge the alignment segments back together.
         self.power_alignment = ExpandedAlignment(self.split_regions[0].s1, self.split_regions[0].s2, 
