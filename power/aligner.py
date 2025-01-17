@@ -207,12 +207,14 @@ class PowerAligner:
         hyp_word_span = (0, len(hyp_words))
         
         # Perform Levenshtein Alignment
-        lev = Levenshtein.align(ref=ref_phones, 
-                            hyp=hyp_phones,
-                            reserve_list=PowerAligner.reserve_list, 
-                            exclusive_sets=PowerAligner.exclusive_sets,
-                            weights=Levenshtein.wordAlignWeights) #, 
-                            #dist_penalty=PowerAligner.phoneDistPenalty, dist_penalty_set=Levenshtein.wordAlignWeights)				
+        lev = Levenshtein.align(
+            ref=ref_phones, 
+            hyp=hyp_phones,
+            reserve_list=PowerAligner.reserve_list, 
+            exclusive_sets=PowerAligner.exclusive_sets,
+            weights=Levenshtein.wordAlignWeights,
+            # dist_penalty=PowerAligner.phoneDistPenalty, dist_penalty_set=Levenshtein.wordAlignWeights
+        )
         phone_align = lev.expandAlignCompact()
         
         worklist = list()
@@ -388,8 +390,9 @@ class PowerAligner:
                                 hyp=[x for x in phone_align.s2 if x],
                                 reserve_list=PowerAligner.reserve_list, 
                                 exclusive_sets=PowerAligner.exclusive_sets,
-                                weights=Levenshtein.wordAlignWeights) #, 
-                                #dist_penalty=PowerAligner.phoneDistPenalty, dist_penalty_set=Levenshtein.wordAlignWeights)
+                                weights=Levenshtein.wordAlignWeights,
+                                # dist_penalty=PowerAligner.phoneDistPenalty, dist_penalty_set=Levenshtein.wordAlignWeights
+                            )
                             phone_align_next = lev.expandAlignCompact()
                             
                             worklist.append((ref_word_span_next, hyp_word_span_next, phone_align_next))
