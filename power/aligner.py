@@ -362,7 +362,10 @@ class PowerAligner:
                                         
                             commit_alignment = True
                             hyp_syllable_count = 0
-                            
+                        
+                        if all(a == AlignLabels.correct for a in alignment):
+                            commit_alignment = True
+
                         if commit_alignment:
                             # Commit the alignment.
                             full_reference.extend(ref_aligned)
