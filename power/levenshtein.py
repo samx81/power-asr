@@ -286,24 +286,19 @@ class Levenshtein:
 
                 match_char = AlignLabels.substitution
                 # Add insert/delete options
-                insPenalty = lev.backMatrix.getWeight(
-                    index2, index1+1) + weights[AlignLabels.insertion]
-                delPenalty = lev.backMatrix.getWeight(
-                    index2+1, index1) + weights[AlignLabels.deletion]
+                insPenalty = lev.backMatrix.getWeight(index2, index1+1) + weights[AlignLabels.insertion]
+                delPenalty = lev.backMatrix.getWeight(index2+1, index1) + weights[AlignLabels.deletion]
 
                 if dist_penalty_set:
-                    insPenalty += (distPenaltyHyp * dist_penalty) * \
-                        weights[AlignLabels.insertion]
-                    delPenalty += (distPenaltyRef * dist_penalty) * \
-                        weights[AlignLabels.deletion]
+                    insPenalty += (distPenaltyHyp * dist_penalty) * weights[AlignLabels.insertion]
+                    delPenalty += (distPenaltyRef * dist_penalty) * weights[AlignLabels.deletion]
 
-                opts = [insPenalty,  # I
-                        delPenalty,   # D
-                        ]
+                opts = [insPenalty, delPenalty]
 
                 if char1 == char2:
-                    opts.append(lev.backMatrix.getWeight(
-                        index2, index1) + weights[AlignLabels.correct])  # C
+                    opts.append(
+                        lev.backMatrix.getWeight(index2, index1) + weights[AlignLabels.correct]
+                    )  # C
                     match_char = AlignLabels.correct
                 elif not reserve_list or not (char1 in reserve_list or char2 in reserve_list):
                     if exclusive_sets:
@@ -311,26 +306,26 @@ class Levenshtein:
                         no_membership_set = set([-1])
 
                         # Change this to handle multiple set membership
-                        char1_sets = set(
-                            [k for k in range(len(exclusive_sets)) if char1 in exclusive_sets[k]])
+                        char1_sets = set([k for k in range(len(exclusive_sets)) if char1 in exclusive_sets[k]])
                         if not char1_sets:
                             char1_sets = no_membership_set
-                        char2_sets = set(
-                            [k for k in range(len(exclusive_sets)) if char2 in exclusive_sets[k]])
+
+                        char2_sets = set([k for k in range(len(exclusive_sets)) if char2 in exclusive_sets[k]])
                         if not char2_sets:
                             char2_sets = no_membership_set
 
                         if set.intersection(char1_sets, char2_sets):
-                            opts.append(lev.backMatrix.getWeight(
-                                index2, index1) + weights[AlignLabels.substitution])  # S
+                            opts.append(
+                                lev.backMatrix.getWeight(index2, index1) + weights[AlignLabels.substitution]
+                            )  # S
                     else:
-                        opts.append(lev.backMatrix.getWeight(
-                            index2, index1) + weights[AlignLabels.substitution])     # S
+                        opts.append(
+                            lev.backMatrix.getWeight(index2, index1) + weights[AlignLabels.substitution]
+                        )     # S
 
                 # Get the locally minimum score and edit operation
                 minDist = min(opts)
-                minIndices = [i for i in reversed(
-                    range(len(opts))) if opts[i] == minDist]
+                minIndices = [i for i in reversed(range(len(opts))) if opts[i] == minDist]
 
                 # Build the backtrack
                 alignLabels = []
@@ -342,12 +337,10 @@ class Levenshtein:
                     elif minIndex == 1:
                         alignLabels.append(AlignLabels.deletion)
 
-                lev.backMatrix.addBackTrack(
-                    index2+1, index1+1, alignLabels, minDist)  # S/C
+                lev.backMatrix.addBackTrack(index2+1, index1+1, alignLabels, minDist)  # S/C
                 pass
 
-        lev.dist = lev.backMatrix.getWeight(
-            lev.backMatrix.hyplen, lev.backMatrix.reflen)
+        lev.dist = lev.backMatrix.getWeight(lev.backMatrix.hyplen, lev.backMatrix.reflen)
         return lev
 
     def matchPositions(self, token, token2=None, min_i=None, min_j=None, max_i=None, max_j=None):
@@ -396,12 +389,18 @@ class Levenshtein:
 
             for alignLabel in self.backMatrix.matrix[i][j].backTrackOptions:
                 child = self.backMatrix.matrix[i][j].getBackTrackOffset(alignLabel)
+                # TODO: Find some way to insert, punish weight if the distance to last hit is too far
+                # NOTE(Update): Probably no need to calculate distance since we can just cut path if too many insert phones
                 prev_i = i + child[1][0]
                 prev_j = j + child[1][1]
 
                 align = child[0]
+                # NOTE: this part counts the cursor of hyp and ref moving, if I can use this...
                 rlabel = self.s1[j-1] if prev_j < j else ''
                 hlabel = self.s2[i-1] if prev_i < i else ''
+
+                # NOTE: probably distance between i & j can used as weight
+                # weight = abs(i-j)
 
                 # Weight applied based on whether (i & prev_i) or (j & prev_j) are along the hull of minPos or maxPos
                 weight = 1
@@ -476,7 +475,7 @@ class Levenshtein:
 
         return ExpandedAlignment(s1, s2, align, s1_map, s2_map, lowercase=self.lowercase)
 
-    def expandAlignCompact(self, minPos=None, maxPos=None):
+    def expandAlignCompact(self, minPos=None, maxPos=None, reserve_list=set(['|', '#'])):
         """
         Using the backtracking matrix, finds all of the paths with the minimum Levenshtein distance score and stores them in a graph.
         Then, it returns the expanded alignment of the shortest path in the graph (which still has the same minimum Lev distance score.
@@ -486,12 +485,52 @@ class Levenshtein:
         maxPos = (self.backMatrix.hyplen, self.backMatrix.reflen)
 
         G = self.bestPathsGraph(minPos, maxPos)
-        path = nx.shortest_path(
-            G, source=minPos, target=maxPos, weight='weight')
+        path = nx.shortest_path(G, source=minPos, target=maxPos, weight='weight')
 
         # Expand the best path into the Levenshtein alignment.
-        s1_align, s2_align, align = [list(a) for a in zip(
-            *(G[u][v]['labels'] for (u, v) in zip(path[0:], path[1:])))]
+        labels = [G[u][v]['labels'] for (u, v) in zip(path[0:], path[1:])]
+        s1_align, s2_align, align = [list(a) for a in zip(*labels)]
+        s1_align_compat = [s1 for s1 in s1_align if s1 != ""]
+
+        if not isinstance(reserve_list, set):
+            reserve_list = set(reserve_list)
+        if set(s1_align_compat).issubset(reserve_list):
+            return ExpandedAlignment(s1_align, s2_align, align, lowercase=self.lowercase)
+
+        word_distance, max_tolerate_dist = 0, 2
+        idx, ref_idx = 0, 0
+        while idx < len(s1_align):
+            s1, s2 = s1_align[idx], s2_align[idx]
+            if s2 == '|': # For now only support word boundary
+                word_distance = 0 if s1 == "|" else word_distance+1
+
+            # inserts phone deletion label and reset counting
+            if word_distance > max_tolerate_dist:
+                s1_align.insert(idx, s1_align_compat[ref_idx])
+                s2_align.insert(idx, "")
+                align.insert(idx, AlignLabels.deletion)
+                word_distance = 0
+                ref_idx += 1
+            elif s1 != "":
+                ref_idx += 1
+            idx += 1
+
+            # No ref phones left (except '|' word boundary)
+            if ref_idx >= len(s1_align_compat) - 1:
+                break
+
+        if idx < len(s1_align) - 1:
+            finish_word = False
+            for i in range(idx, len(s1_align)):
+                if not finish_word and s2_align[i] == '|':
+                    s1_align[i] = '|'
+                    align[i] = AlignLabels.correct
+                    finish_word = True
+                else:
+                    s1_align[i] = ""
+                    align[i] = AlignLabels.insertion
+        #         print(f"s1: {s1_align[i]}, s2:{s2_align[i]}, a:{align[i]}")
+
         return ExpandedAlignment(s1_align, s2_align, align, lowercase=self.lowercase)
 
     @staticmethod
