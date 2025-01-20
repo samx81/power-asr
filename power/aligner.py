@@ -166,8 +166,8 @@ class PowerAligner:
             seg = self.split_regions[error_index]
             ref_words = seg.s1_tokens()
             hyp_words = seg.s2_tokens()
-            ref_phones = self.pronouncer.pronounce(ref_words)
-            hyp_phones = self.pronouncer.pronounce(hyp_words)
+            ref_phones = self.pronouncer.pronounce(ref_words) if ref_words else []
+            hyp_phones = self.pronouncer.pronounce(hyp_words) if hyp_words else []
 
 
             if len(ref_words) == len(hyp_words) == 1:
@@ -188,9 +188,12 @@ class PowerAligner:
                 self.split_regions[error_index] = power_seg_alignment
 
         # Merge the alignment segments back together.
-        self.power_alignment = ExpandedAlignment(self.split_regions[0].s1, self.split_regions[0].s2, 
-                self.split_regions[0].align, 
-                self.split_regions[0].s1_map, self.split_regions[0].s2_map, lowercase=self.lowercase)
+        self.power_alignment = ExpandedAlignment(
+            self.split_regions[0].s1, self.split_regions[0].s2, 
+            self.split_regions[0].align, 
+            self.split_regions[0].s1_map, self.split_regions[0].s2_map, 
+            lowercase=self.lowercase
+        )
         for i in range(1, len(self.split_regions)):
             self.power_alignment.append_alignment(self.split_regions[i])
         
@@ -216,6 +219,15 @@ class PowerAligner:
             # dist_penalty=PowerAligner.phoneDistPenalty, dist_penalty_set=Levenshtein.wordAlignWeights
         )
         phone_align = lev.expandAlignCompact()
+
+        if not ref_words or not hyp_words:
+            if not ref_words:
+                ref_words = [''] * len(hyp_words)
+                full_alignment = [AlignLabels.insertion] * len(hyp_words)
+            else:
+                hyp_words = [''] * len(ref_words)
+                full_alignment = [AlignLabels.deletion] * len(ref_words)
+            return ExpandedAlignment(ref_words, hyp_words, full_alignment), phone_align
         
         worklist = list()
         worklist.append((ref_word_span, hyp_word_span, phone_align))
@@ -322,7 +334,7 @@ class PowerAligner:
                                         exclusive_sets=PowerAligner.exclusive_sets,
                                         weights=Levenshtein.wordAlignWeights) #, 
                                         #dist_penalty=PowerAligner.phoneDistPenalty, dist_penalty_set=Levenshtein.wordAlignWeights)
-                                        
+                                    
                                     phone_align_adjusted = lev.expandAlignCompact()
                                     
                                     if phone_align_curr.align != phone_align_adjusted.align:

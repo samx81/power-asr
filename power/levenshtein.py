@@ -497,7 +497,7 @@ class Levenshtein:
         if set(s1_align_compat).issubset(reserve_list):
             return ExpandedAlignment(s1_align, s2_align, align, lowercase=self.lowercase)
 
-        word_distance, max_tolerate_dist = 0, 3
+        word_distance, max_tolerate_dist = 0, 2
         idx, ref_idx = 0, 0
         while idx < len(s1_align):
             s1, s2 = s1_align[idx], s2_align[idx]
@@ -519,7 +519,7 @@ class Levenshtein:
             if ref_idx >= len(s1_align_compat) - 1:
                 break
 
-        if idx < len(s1_align):
+        if idx < len(s1_align) - 1:
             finish_word = False
             for i in range(idx, len(s1_align)):
                 if not finish_word and s2_align[i] == '|':
