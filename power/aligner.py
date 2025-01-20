@@ -189,9 +189,9 @@ class PowerAligner:
 
         # Merge the alignment segments back together.
         self.power_alignment = ExpandedAlignment(
-            self.split_regions[0].s1, self.split_regions[0].s2, 
-            self.split_regions[0].align, 
-            self.split_regions[0].s1_map, self.split_regions[0].s2_map, 
+            self.split_regions[0].s1.copy(), self.split_regions[0].s2.copy(), 
+            self.split_regions[0].align.copy(), 
+            self.split_regions[0].s1_map.copy(), self.split_regions[0].s2_map.copy(), 
             lowercase=self.lowercase
         )
         for i in range(1, len(self.split_regions)):
@@ -491,6 +491,7 @@ class PowerAligner:
         fp_align = full_phone_align[0]
         for expand_align in full_phone_align[1:]:
             fp_align.append_alignment(expand_align)
+        fp_align.append_alignment(phone_align)
             
         return ExpandedAlignment(full_reference, full_hypothesis, full_alignment), fp_align
             
