@@ -515,8 +515,8 @@ class Levenshtein:
                 ref_idx += 1
             idx += 1
 
-            # No ref phones left (except '|' word boundary)
-            if ref_idx >= len(s1_align_compat) - 1:
+            # No ref phones left (except last '|' word boundary)
+            if ref_idx >= len(s1_align_compat) - 1 and s1_align_compat[-1] == '|':
                 break
 
         if idx < len(s1_align) - 1:
