@@ -8,7 +8,7 @@ Assuming you have a file of word sequences, this processes them through Festival
 import sys
 import json
 from itertools import groupby
-from normalize import NumToTextEng, splitHyphens
+from power_asr.normalize import NumToTextEng, splitHyphens
 import pyphen
 
 class PronouncerType:

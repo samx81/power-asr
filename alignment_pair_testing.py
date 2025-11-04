@@ -1,8 +1,12 @@
-from power.aligner import PowerAligner
-from power.levenshtein import ExpandedAlignment
+from power_asr.power.aligner import PowerAligner
+from power_asr.power import ExpandedAlignment
+from power_asr import lex
 
-lexicon = "lex/cmudict.0.7a.json"
-lexicon = "lex/cmudict.rep.json"
+
+lexicon = f"{lex.__path__[0]}/cmudict.0.7a.json"
+lexicon = f"{lex.__path__[0]}/cmudict.rep.json"
+
+print(lexicon)
 
 
 def collapse_list(seq):

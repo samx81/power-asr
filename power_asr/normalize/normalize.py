@@ -1,6 +1,6 @@
-from normalize import NumToTextEng, TextToNumEng
-from normalize import ContractionsEng
-from power.levenshtein import ExpandedAlignment
+from power_asr.normalize import NumToTextEng, TextToNumEng
+from power_asr.normalize import ContractionsEng
+from power_asr.power import ExpandedAlignment
 import re
 from collections import defaultdict
 import itertools

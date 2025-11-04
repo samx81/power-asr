@@ -4,11 +4,11 @@ import argparse
 import copy
 from collections import defaultdict, Counter
 
-from power import writers
-from power.aligner import PowerAligner
+from power_asr.power import writers
+from power_asr.power.aligner import PowerAligner
 
 
-def main(argv):
+def main():
     parser = argparse.ArgumentParser("power.py")
     parser.add_argument('--ref', dest='reffile', required=True,
                         help="Define the reference file")
@@ -32,12 +32,12 @@ def main(argv):
                         help="Perform case-sensitive alignment", default=True)
     parser.add_argument('--word-align-weights', dest="word_align_weights", required=False, nargs=4, type=int,
                         help='Weights for the Levenshtein word aligner (C S D I)')
-    parser.add_argument('--lexicon', dest="lexicon", default=None, required=True, 
+    parser.add_argument('--lexicon', dest="lexicon", default=None, required=True,
                         help="Path to pronunciation lexicon (json key/value dict)")
 
-    #parser.set_defaults(verbose=False, format=['sgml'], print_wer=False, compare_wer=False, show_phonemes=False)
+    # parser.set_defaults(verbose=False, format=['sgml'], print_wer=False, compare_wer=False, show_phonemes=False)
 
-    args = parser.parse_args(argv)
+    args = parser.parse_args()
 
     wer_score_components = Counter()
     power_score_components = Counter()
@@ -91,10 +91,10 @@ def main(argv):
                     keys = ['C', 'S', 'D', 'I']
                     word_align_weights = dict(zip(keys, args.word_align_weights))
                     aligner = PowerAligner(refline, hypline, lowercase=args.lowercase, verbose=args.verbose,
-                                            lexicon=args.lexicon, word_align_weights=word_align_weights)
+                                           lexicon=args.lexicon, word_align_weights=word_align_weights)
                 else:
                     aligner = PowerAligner(refline, hypline, lowercase=args.lowercase, verbose=args.verbose,
-                                            lexicon=args.lexicon)
+                                           lexicon=args.lexicon)
                 wer_score_components += Counter(aligner.wer_components)
 
                 if args.print_wer:
@@ -197,4 +197,4 @@ def main(argv):
 
 
 if __name__ == "__main__":
-    main(sys.argv[1:])
+    main()
