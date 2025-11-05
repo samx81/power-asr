@@ -12,6 +12,8 @@ classifiers = [
   "Programming Language :: Python"
 ]
 
+[tool.setuptools]
+include-package-data = true
 
 [tool.setuptools.dynamic]
 dependencies = {file = ["requirements.txt"]}
@@ -22,3 +24,4 @@ Repository = "https://github.com/NickRuiz/power-asr.git"
 [project.scripts]
 power_cli = "power_asr:power_cli.main"
 power_lev = "power_asr:lev.main"
+
